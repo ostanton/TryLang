@@ -166,3 +166,67 @@ void main = {
     ValT myVal : generics<ValT> = sum<ValT>(5, 3); // bit of a dumb example, but you get it
     print(myVal<double>); // prints "8.0"
 }
+
+// GRAMMAR (inspired by "Programming Principles and Practice Using C++ Second Edition" Chapter 6.4 "Grammars")
+StatementList:
+    Statement
+    Statement StatementList
+
+Statement:
+    Declaration ';'
+    Declaration Definition
+
+Definition:
+    '=' Value ';'
+    '=' Block
+
+Block:
+    '{' StatementList '}'
+
+Declaration:
+    Type "[name]" Closure
+    Type "[name]" Closure ':' AttributeList
+
+AttributeList:
+    Attribute
+    Attribute ',' AttributeList
+
+Attribute:
+    "const"
+    "namespace"
+
+Closure:
+    '(' ClosureParams ')'
+
+ClosureParams:
+    Declaration
+    Declaration ',' ClosureParams
+
+Value:
+    Literal
+    Expression
+
+Expression:
+    Term
+    Expression '+' Term
+    Expression '-' Term
+
+Term:
+    Primary
+    Term '*' Primary
+    Term '/' Primary
+    Term '%' Primary
+
+Primary:
+    Literal
+    '(' Expression ')'
+
+Literal:
+    0
+    1
+    etc.
+
+Type:
+    int
+    float
+    bool
