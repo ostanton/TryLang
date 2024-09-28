@@ -1,0 +1,168 @@
+// TryLang Spec
+
+// VAR
+[TYPE] [NAME] opt(: [ATTR...]); // defaulted to whatever default value for that type is
+
+[VAR] = [DEF];
+[VAR] = {
+    [DEF];
+    return [VAL];
+}
+
+// FUNC/LAMBDA (same as variables but allow other variables inside (to be captured) via parameters)
+[TYPE] [NAME]([VAR...]) opt(: [ATTR...]) = [DEF];
+[TYPE] [NAME]([VAR...]) opt(: [ATTR...]) = {
+    [DEF];
+    return [VAL];
+}
+
+// return is only necessary when using non-void return types
+// functions with captures but void return that provide no definition do nothing, it is legal
+// functions with return types and captures act like normal variables, with type's default value returning
+// e.g.:
+int num(int a, int b); // returns "0" implicitly, same as "int num;"
+// captured variables (parameters) do not need to be used
+
+// STATEMENT
+[NAME];
+[NAME]([PARAM...]);
+[VAR] = [STATEMENT];
+
+// hello_world.try
+import std.io;
+
+// "main" is a variable which returns nothing, but when it is called, or "got", its definition is executed
+// in this way, variables and functions are essentially the same. the only different is functions allow to
+// capture outside values
+// This idea allows variables to be called like functions, but with no captures "()", and for functions with
+// no declared captures to be called like variables.
+void main = {
+    print("Hello world!");
+}
+
+// variables.try
+import std.io;
+
+void main = {
+    string firstName : const = "John";
+    string lastName : const = "Doe";
+    string fullName(string first, string last) : const = first + last;
+    print(fullName(firstName, lastName)); // calling a function and not providing it inputs that its definition uses is an error
+}
+
+// function.try
+string getName = "John Doe";
+// is the same as:
+string getName() = {
+    return "John Doe";
+}
+
+// called as such
+getName;
+getName(); // empty capture group (params)
+
+// control.try
+void main = {
+    string name = "John";
+    
+    // if-else are implicit void return definitions
+    if (name == "Jim") = print("Not Jim!");
+    else if (name == "John") = print("Correct!");
+    else = print("This just isn't right");
+    
+    // same as
+    
+    if (name == "Jim") = {
+        print("Not Jim!");
+    } else if (name == "John") = {
+        print("Correct!");
+    } else = {
+        print("This just isn't right");
+    }
+    
+    // compile-time if
+    if (name == "Jim") : compiletime = print("Not Jim!");
+    
+    // there are generally no rules on whitespacing. as long as words can be found and symbols identified, it is ok
+    
+    bool alwaysOn = true; // same as: bool alwaysOn = {return true;}
+    // while and for are implicit void return definitions
+    while (alwaysOn) = {
+        print("You are now stuck D:");
+    }
+    
+    for (int i = 0; i < 10; i++) = {
+        print(i);
+    }
+    
+    int number : const = {
+        int num = randint(5);
+        num *= 2;
+        return num;
+    }
+    // switch and case are implicit void return definitions
+    switch (number) = {
+        case (5) = {
+            print("something, idk");
+        }
+        default = {
+            print("nothing else");
+        }
+    }
+}
+
+// complicated.try
+int sum(int a : const, int b : const) : compiletime, const, nodiscard = (a + b); // are brackets in (a + b) necessary?
+
+void main = {
+    print(sum(1, 2)); // 3 (calculated at compile time)
+}
+
+// func_param.try
+void exec(void func(int a : const)) = func(1);
+
+void bound(int a : const) = {
+    print(a);
+}
+
+void main = {
+    exec(bound); // prints "1"
+}
+
+// user_types.try
+// NEEDS WORK, but should act like struct in C
+type MyType = {
+    string name; // defaults to ""
+}
+
+void main = {
+    MyType obj = {
+        name = "John"; // ??
+    }
+}
+
+// modules.try
+module maths: // everything from here until either end of file, or next "module [NAME]:" is now in the module "maths" (colon instead of {} to help with indents. {} can be used too, and probably should be)
+module maths = {
+
+int sum(int a, int b) = a + b;
+int minus(int a, int b) = a - b;
+
+}
+
+// module_import.try
+import maths;
+import maths : namespace = {sum, minus} // import names of specific things. attribute "namespace" tells to use this module as a namespace
+
+void main = {
+    print(maths.sum(1, 2));
+}
+
+// generics.try
+T sum(T a, T b) : generics<T> = a + b;
+
+void main = {
+    print(sum<int>(1, 2)); // prints "3"
+    ValT myVal : generics<ValT> = sum<ValT>(5, 3); // bit of a dumb example, but you get it
+    print(myVal<double>); // prints "8.0"
+}
