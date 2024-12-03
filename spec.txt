@@ -1,5 +1,89 @@
 // TryLang Spec
 
+/* NEW EXAMPLES */
+
+// Stuff after this section is old and possibly outdated
+
+// Variables
+int num; // defaults to 0
+int num2 = 5; // implicitly const
+num2 = 6; // error, reassigning const
+int num3 : mut = 6; // non-const
+num3 = 10; // OK
+
+// Functions
+void myFunc = {
+    print("hello world!"); // typical block
+}
+void myFunc2 = print("hello world!"); // single line, no block needed
+void myFunc3 : mut = print("goodbye world"); // mutable function
+myFunc3 = print("good day world!"); // reassigning function definition
+
+void printFullName(string first, string last) = { // typical parameters
+    print(first + last);
+}
+void printFullName2(string first : mut, string last = "Stanton") = { // default values & attributes
+    print(first + last);
+}
+// note that the function parameters use exactly the same syntax as variable declaration
+// this means you can pass functions into other functions as you would expect
+void executeFunc(void inputFunc(int)) = { // like in C++, you do not need to specify a function parameter name
+    inputFunc(1);
+}
+
+// Modules
+module std = import("std.try"); // "import" keyword I'm unsure of. Zig as "@Import" which I like more
+// modules are much like Zig's, where they are defined in the source file, but not given a name until imported elsewhere
+// module contents are got via :: like C++'s namespaces (might change later, does this clash with ": [ATTRIBUTES]" ??
+std::io::print("Hello world!");
+// import specific part of a module
+module io = import("std.try")::io;
+// or
+module io = import("std/io.try");
+// Zig's "const" as alias is much nicer. Not sure if I like this much
+
+// Structures
+struct Point = {int x; int y;} // literally just C's
+struct Point(int value) = {int x = value; int y = value;} // naturally, can capture like a function
+Point(12) myPoint; // use it as a normal type
+myPoint.x; // get members like you'd expect
+
+// Inheritance
+struct Base = {}
+struct Derived : derives(Base) = {} // attribute means variables and such can derive too, whatever that entails!!
+// derives() should be as simple as taking the base members and putting them on the derived struct, and/or forwarding
+// base struct calls to the derived ones/vice versa (I think D does something like this with their structs)
+
+// Enumerations
+enum Colour = {int Red; int Blue; int Green;} // not sure about this. I want consistency, but this looks weird
+// enums are like structs, except they behave like a union. Essentially, all enums are just tagged unions
+enum Type = {int a; float b; string c;}
+// capture parameters and attributes are still here for enums, of course
+enum Something(Colour c) : mut = {c colour; int x;}
+Something(Colour c) = {c colour; float f; string s;} // reassignment and all!
+
+// Generics
+struct Vector2D : generic<T> = { // either this, or something more familiar "Vector2D<T>". If capture parameters can just be there, why can't generics??
+    T x;
+    T y;
+}
+// limitation here, like C++ has, is how do you have the type T defined after the initial variable type?
+T var : generic<T>; // ??? same problem for just "var<T>". C# allows this I think? Multiple passes or something idk.
+// I don't want to do C++'s template<typename T> T var; Maybe something like it? That's be breaking consistency a bit though
+
+// try more generics
+T veryGeneric(V in : generic<V>, T in2) : generic<T> = {/* ... */}
+veryGeneric<int>("hello", 1); // generic type inference
+// ^ this brings up a good point. Why are generics placed there in calls?? They're an attribute. Brackets () are there because
+// that's where they are in declarations. If it's an attribute, should it be like so instead?:
+veryGeneric("hello", 1) : generic<int>; // this is weird!
+// I think veryGeneric<T> as part of the declaration works fine. And attributes should be geared more towards library features than language features I think.
+// e.g. you should be able to make your own attributes. generic<T> works against that
+
+T myVar<T> = 5; // generic variables :O
+
+/* END NEW EXAMPLES */
+
 // VAR
 [TYPE] [NAME] opt(: [ATTR...]); // defaulted to whatever default value for that type is
 
